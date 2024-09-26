@@ -4,7 +4,7 @@ from faster_whisper import WhisperModel
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import RedirectResponse
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 model_size = "medium"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -15,7 +15,21 @@ app = FastAPI()
 
 @app.post("/fwhisper/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
-    if not file.filename.endswith((".wav", ".mp3", ".flac", ".m4a")):
+    if not file.filename.endswith(
+        (
+            ".wav",
+            ".mp3",
+            ".flac",
+            ".m4a",
+            ".aac",
+            ".ogg",
+            ".opus",
+            ".wma",
+            ".m4b",
+            ".aiff",
+            ".au",
+        )
+    ):
         raise HTTPException(
             status_code=400,
             detail="Invalid file format. Please upload an audio file.",
