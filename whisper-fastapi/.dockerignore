@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache
+.git
+.gitignore
+.envrc
+.env
+README.md
+.vscode/
+*.tmp
+*.log

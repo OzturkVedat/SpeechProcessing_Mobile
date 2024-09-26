@@ -1,46 +1,27 @@
-import torch
-import os, logging
+import os, logging, aiofiles
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import RedirectResponse
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
-model_size = "medium"
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+model_size = "small"  # switch to medium for better accuracy, but slower inference
+fw_model = WhisperModel(model_size, device="cuda", compute_type="float16")
 
-fw_model = WhisperModel(model_size, device=DEVICE, compute_type="float16")
+
 app = FastAPI()
 
 
 @app.post("/fwhisper/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
-    if not file.filename.endswith(
-        (
-            ".wav",
-            ".mp3",
-            ".flac",
-            ".m4a",
-            ".aac",
-            ".ogg",
-            ".opus",
-            ".wma",
-            ".m4b",
-            ".aiff",
-            ".au",
-        )
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid file format. Please upload an audio file.",
-        )
-
     try:
         temp_audio = f"temp{file.filename}"
-        with open(temp_audio, "wb") as f:
-            f.write(await file.read())
+        async with aiofiles.open(temp_audio, "wb") as f:
+            await f.write(await file.read())
 
-        segments, info = fw_model.transcribe(temp_audio, beam_size=3)
+        segments, info = fw_model.transcribe(
+            temp_audio, beam_size=1
+        )  # greedy approach, saves time
 
         transcription = "".join([segment.text for segment in segments])
 
