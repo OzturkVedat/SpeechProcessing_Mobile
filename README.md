@@ -12,9 +12,8 @@ This project is designed to provide efficient audio transcription through a simp
   
 ## Requirements
 
-- Python 3.x
-- Docker (for containerization)
-- CUDA supported hardware with GPU (CPU is ignored, as it can yield slow responses)
+- Docker Engine
+- CUDA supported hardware with GPU (CPU is ignored in this project, as it can yield slow responses)
 
 ## Installation
 
