@@ -41,10 +41,7 @@ This project is designed to provide efficient audio transcription through a simp
    
 ## Usage
 
-To use the API for audio transcription, send a post request via /transcibe endpoint with the audio file. The API will return the transcription result in JSON format:
-  ```json
-    docker run -d -p 8000:8000 speech-recog-img
-  ```
+To use the API for audio transcription, send a post request via /transcibe endpoint with the audio file. The API will return the transcription result in JSON format. Response time can vary depending on the system, particulary GPU.
 
 ### Project Structure
 
