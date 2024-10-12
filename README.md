@@ -33,8 +33,9 @@ This project is designed to provide efficient audio transcription through a simp
 3. Run the Docker container:
 
     ```bash
-    docker run -d -p 8000:8000 speech-recog-img
+    docker run --gpus all -p 8000:8000 speech-recog-img
     ```
+    Wait for microservice to initialize, it can take a few minutes. FYI, you can check the container's logs within Docker Desktop to supervise the process.
      
 4. Access the API:
    Open your browser and go to http://localhost:8000/ to view the API Documentation(SwaggerUI).
