@@ -1,8 +1,16 @@
 import os
 import logging
 import aiofiles
+import asyncio
 from faster_whisper import WhisperModel  # pip install faster_whisper
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import RedirectResponse
 
 logging.basicConfig(
@@ -61,6 +69,36 @@ async def transcribe_audio(file: UploadFile = File(...)):
         if os.path.exists(temp_audio):
             logging.info(f"Deleting temporary file: {temp_audio}")
             os.remove(temp_audio)
+
+
+@app.websocket("/fwhisper/speech-recognition")
+async def ws_realtime_speech_recog(websocket: WebSocket):
+    logging.info("Client connected to Websocket")
+    await websocket.accept()
+    try:
+        audio_buffer = b""
+
+        async for message in websocket.iter_bytes():
+            audio_buffer += message
+
+            if len(audio_buffer) > 10240:  # process if buffer is large enough(10KB)
+                temp_audio = "temp_stream.wav"
+
+                with open(temp_audio, "wb") as f:
+                    f.write(audio_buffer)
+
+                segments, _ = fw_model.transcribe(temp_audio, beam_size=1)
+                for segment in segments:
+                    await websocket.send_text(f"{segment.text}")
+
+                audio_buffer = "b"  # reset buffer
+                os.remove(temp_audio)
+
+    except WebSocketDisconnect:
+        logging.info("Client disconnected from WebSocket")
+    except Exception as e:
+        logging.error(f"Error during inference: {e}", exc_info=True)
+        await websocket.close()
 
 
 @app.get("/", response_class=RedirectResponse)
