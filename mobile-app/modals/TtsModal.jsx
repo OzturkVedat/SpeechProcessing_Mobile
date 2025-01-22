@@ -4,6 +4,7 @@ import { StyleSheet, Dimensions, TextInput, View } from "react-native";
 import axios from "axios";
 import Constants from "expo-constants";
 import { Audio } from "expo-av";
+import * as FileSystem from "expo-file-system";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 
@@ -28,12 +29,16 @@ const TtsModal = ({ visible, onDismiss }) => {
       formData.append("text", text);
       const response = await axios.post(`${API_URL}/gtts/text-to-speech`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        responseType: "blob", // Important to handle binary data
+        responseType: "arraybuffer",
       });
-      const audioBlob = new Blob([response.data], { type: "audio/mpeg" });
+      const base64audio = btoa(new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), ""));
+      const tempAudioPath = FileSystem.documentDirectory + "temp_audio.mp3";
 
-      const audioUri = URL.createObjectURL(audioBlob);
-      setAudioUri(audioUri);
+      await FileSystem.writeAsStringAsync(tempAudioPath, base64audio, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      setAudioUri(tempAudioPath);
     } catch (err) {
       setError("Failed to generate speech.");
       console.error(err);

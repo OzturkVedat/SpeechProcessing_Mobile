@@ -1,14 +1,14 @@
 import os
 import logging
 import aiofiles
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.responses import RedirectResponse, FileResponse
 
 from googletrans import Translator
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from gtts import gTTS
-from langdetect import detect
+import langid
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -25,6 +25,55 @@ batched_model = BatchedInferencePipeline(model=fw_model)
 translator = Translator()
 
 app = FastAPI()
+
+
+@app.post("/gtts/text-to-speech")
+async def text_to_speech(
+    text: str = Form(...), background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    if not text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+
+    MAX_TEXT_LENGTH = 1000
+    if len(text) > MAX_TEXT_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Text is too long. Maximum allowed length is {MAX_TEXT_LENGTH} characters.",
+        )
+    temp_audio_path = f"temp{text[:3]}.mp3"
+    try:
+        logging.info(f"Received text for TTS: {text[:50]}...")
+
+        lang, _ = langid.classify(text)  # auto-detect language of text
+        logging.info(f"Detected language: {lang}")
+
+        tts = gTTS(text=text, lang=lang)
+
+        tts.save(temp_audio_path)
+        logging.info(f"Saved generated speech to temporary file: {temp_audio_path}")
+
+        background_tasks.add_task(
+            delete_temp_file, temp_audio_path
+        )  # add file deletion as background task
+
+        return FileResponse(
+            temp_audio_path,
+            media_type="audio/mpeg",
+            filename=os.path.basename(temp_audio_path),
+        )
+
+    except Exception as ex:
+        logging.error(f"Error during TTS conversion: {ex}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred during TTS conversion: {str(ex)}",
+        )
+
+
+def delete_temp_file(file_path: str):
+    if os.path.exists(file_path):
+        logging.info(f"Deleting temporary file: {file_path}")
+        os.remove(file_path)
 
 
 @app.post("/fwhisper/translate")
@@ -131,43 +180,6 @@ async def transcribe_audio(file: UploadFile = File(...)):
         if os.path.exists(temp_audio):
             logging.info(f"Deleting temporary file: {temp_audio}")
             os.remove(temp_audio)
-
-
-@app.post("/gtts/text-to-speech")
-async def text_to_speech(text: str = Form(...)):
-    if not text:
-        raise HTTPException(status_code=400, detail="Text cannot be empty.")
-
-    MAX_TEXT_LENGTH = 1000
-    if len(text) > MAX_TEXT_LENGTH:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Text is too long. Maximum allowed length is {MAX_TEXT_LENGTH} characters.",
-        )
-
-    try:
-        logging.info(f"Received text for TTS: {text[:50]}...")
-
-        lang = detect(text)  # auto-detect language of text
-        logging.info(f"Detected language: {lang}")
-
-        tts = gTTS(text=text, lang=lang)
-
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".mp3") as temp_file:
-            tts.save(temp_file.name)
-            logging.info(f"Saved generated speech to temporary file: {temp_file.name}")
-            return FileResponse(
-                temp_file.name,
-                media_type="audio/mpeg",
-                filename=os.path.basename(temp_file.name),
-            )
-
-    except Exception as ex:
-        logging.error(f"Error during TTS conversion: {ex}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"An error occurred during TTS conversion: {str(ex)}",
-        )
 
 
 @app.get("/", response_class=RedirectResponse)
