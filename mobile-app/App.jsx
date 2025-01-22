@@ -5,10 +5,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import TranscribeModal from "./modals/TranscribeModal";
 import SpeechRecogModal from "./modals/SpeechRecogModal";
+import TtsModal from "./modals/TtsModal";
 
 const App = () => {
   const [transcribeVisible, setTranscribeVisible] = useState(false);
   const [speechVisible, setSpeechVisible] = useState(false);
+  const [ttsVisible, setTtsVisible] = useState(false);
 
   return (
     <SafeAreaProvider>
@@ -23,6 +25,11 @@ const App = () => {
             Real-time Speech Recognition
           </Button>
           <SpeechRecogModal visible={speechVisible} onDismiss={() => setSpeechVisible(false)} />
+
+          <Button mode="contained" onPress={() => setTtsVisible(true)} style={styles.button}>
+            Text-to-Speech
+          </Button>
+          <TtsModal visible={ttsVisible} onDismiss={() => setTtsVisible(false)} />
         </View>
       </PaperProvider>
     </SafeAreaProvider>

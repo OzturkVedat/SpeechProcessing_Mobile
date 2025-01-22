@@ -135,6 +135,16 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
 @app.post("/gtts/text-to-speech")
 async def text_to_speech(text: str = Form(...)):
+    if not text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+
+    MAX_TEXT_LENGTH = 1000
+    if len(text) > MAX_TEXT_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Text is too long. Maximum allowed length is {MAX_TEXT_LENGTH} characters.",
+        )
+
     try:
         logging.info(f"Received text for TTS: {text[:50]}...")
 
@@ -142,23 +152,22 @@ async def text_to_speech(text: str = Form(...)):
         logging.info(f"Detected language: {lang}")
 
         tts = gTTS(text=text, lang=lang)
-        tts_output = f"output_{lang}.mp3"
 
-        logging.info(f"Saving generated speech to {tts_output}")
-        tts.save(tts_output)
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".mp3") as temp_file:
+            tts.save(temp_file.name)
+            logging.info(f"Saved generated speech to temporary file: {temp_file.name}")
+            return FileResponse(
+                temp_file.name,
+                media_type="audio/mpeg",
+                filename=os.path.basename(temp_file.name),
+            )
 
-        return FileResponse(tts_output, media_type="audio/mpeg", filename=tts_output)
     except Exception as ex:
         logging.error(f"Error during TTS conversion: {ex}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"An error occurred during TTS conversion: {str(ex)}",
         )
-    finally:
-        # clean temp file
-        if os.path.exists(tts_output):
-            logging.info(f"Deleting temporary TTS file: {tts_output}")
-            os.remove(tts_output)
 
 
 @app.get("/", response_class=RedirectResponse)
