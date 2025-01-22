@@ -6,12 +6,11 @@ import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
-
 const { width, height } = Dimensions.get("window");
 
 const TranscribeModal = ({ visible, onDismiss }) => {
   const [transcription, setTranscription] = useState("");
-  const [metadata, setMetadata] = useState(null); // file metadata
+  const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleUpload = async () => {
@@ -34,7 +33,7 @@ const TranscribeModal = ({ visible, onDismiss }) => {
           },
         });
 
-        if (response.data && response.data.transcription) {
+        if (response.data?.transcription) {
           setTranscription(response.data.transcription);
           setMetadata({
             fileName: response.data.file_name,
@@ -54,17 +53,8 @@ const TranscribeModal = ({ visible, onDismiss }) => {
     }
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}min ${secs}sec`;
-  };
-
-  const formatTimestamp = (seconds) => {
-    const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
-    const secs = String(Math.floor(seconds % 60)).padStart(2, "0");
-    return `${mins}:${secs}`;
-  };
+  const formatTime = (seconds) => `${Math.floor(seconds / 60)}min ${Math.floor(seconds % 60)}sec`;
+  const formatTimestamp = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
   return (
     <Portal>
@@ -72,13 +62,12 @@ const TranscribeModal = ({ visible, onDismiss }) => {
         <Dialog.Title>Transcription</Dialog.Title>
         <Dialog.Content>
           {loading ? (
-            <Text>Transcribing audio...</Text>
+            <Text style={styles.loadingText}>Transcribing audio...</Text>
           ) : (
-            <>
+            <View>
               <Button mode="contained" onPress={handleUpload} disabled={loading} style={styles.button}>
                 Upload Audio
               </Button>
-
               {transcription ? (
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                   {metadata && (
@@ -90,17 +79,17 @@ const TranscribeModal = ({ visible, onDismiss }) => {
                       </Text>
                     </View>
                   )}
-                  <Text style={styles.timestampHeader}>Transcription:</Text>
+                  <Text style={styles.sectionHeader}>Transcription:</Text>
                   {transcription.map((segment, index) => (
-                    <Text key={index} style={styles.timestamp}>
-                      {`[${formatTimestamp(segment.start)} - ${formatTimestamp(segment.end)}]: ${segment.text}`}
+                    <Text key={index} style={styles.transcriptionText}>
+                      [{formatTimestamp(segment.start)} - {formatTimestamp(segment.end)}]: {segment.text}
                     </Text>
                   ))}
                 </ScrollView>
               ) : (
-                <Text>No transcription available</Text>
+                <Text style={styles.placeholderText}>No transcription available</Text>
               )}
-            </>
+            </View>
           )}
         </Dialog.Content>
         <Dialog.Actions>
@@ -114,44 +103,57 @@ const TranscribeModal = ({ visible, onDismiss }) => {
 const styles = StyleSheet.create({
   dialogContainer: {
     width: width * 0.9,
-    height: height * 0.7,
+    maxHeight: height * 0.9,
     alignSelf: "center",
-    borderRadius: 10,
+    borderRadius: 12,
+    overflow: "hidden",
   },
   button: {
-    marginTop: 20,
+    marginVertical: 16,
     alignSelf: "center",
     width: "90%",
     maxWidth: 400,
   },
+  loadingText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#888",
+  },
   scrollView: {
-    maxHeight: height * 0.7,
-    marginTop: 20,
+    maxHeight: height * 0.5,
+    marginTop: 16,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
-  timestampHeader: {
+  sectionHeader: {
     fontSize: 18,
     fontWeight: "bold",
+    marginVertical: 8,
     color: "#444",
   },
-  timestamp: {
+  transcriptionText: {
     fontSize: 14,
     color: "#555",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   metadataContainer: {
-    marginTop: 10,
-    backgroundColor: "#f2f2f2",
-    padding: 10,
+    backgroundColor: "#f9f9f9",
+    padding: 12,
     borderRadius: 8,
-    borderColor: "#ddd",
     borderWidth: 1,
+    borderColor: "#ddd",
+    marginBottom: 12,
   },
   metadataText: {
     fontSize: 16,
     color: "#333",
+  },
+  placeholderText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#999",
+    marginTop: 16,
   },
 });
 

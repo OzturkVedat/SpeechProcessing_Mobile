@@ -7,7 +7,6 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
-
 const { width, height } = Dimensions.get("window");
 
 const TtsModal = ({ visible, onDismiss }) => {
@@ -21,18 +20,21 @@ const TtsModal = ({ visible, onDismiss }) => {
       setError("Text cannot be empty");
       return;
     }
+
     setIsLoading(true);
     setError(null);
 
     try {
       const formData = new FormData();
       formData.append("text", text);
+
       const response = await axios.post(`${API_URL}/gtts/text-to-speech`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         responseType: "arraybuffer",
       });
-      const base64audio = btoa(new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), ""));
-      const tempAudioPath = FileSystem.documentDirectory + "temp_audio.mp3";
+
+      const base64audio = btoa(String.fromCharCode(...new Uint8Array(response.data)));
+      const tempAudioPath = `${FileSystem.documentDirectory}temp_audio.mp3`;
 
       await FileSystem.writeAsStringAsync(tempAudioPath, base64audio, {
         encoding: FileSystem.EncodingType.Base64,
@@ -56,15 +58,15 @@ const TtsModal = ({ visible, onDismiss }) => {
 
   return (
     <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss}>
-        <Dialog.Title>Text-to-Speech</Dialog.Title>
+      <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
+        <Dialog.Title style={styles.title}>Text-to-Speech</Dialog.Title>
         <Dialog.Content>
-          <View style={styles.inputWrapper}>
-            <TextInput label="Enter Text" value={text} onChangeText={setText} multiline numberOfLines={4} style={styles.textInput} placeholder="Type text here" />
+          <View style={styles.inputContainer}>
+            <TextInput value={text} onChangeText={setText} multiline numberOfLines={4} style={styles.textInput} placeholder="Type text here" />
             {error && <Text style={styles.errorText}>{error}</Text>}
           </View>
         </Dialog.Content>
-        <Dialog.Actions>
+        <Dialog.Actions style={styles.actions}>
           <Button onPress={onDismiss}>Cancel</Button>
           <Button mode="contained" onPress={handleTtsRequest} loading={isLoading} disabled={isLoading}>
             Convert to Speech
@@ -72,7 +74,9 @@ const TtsModal = ({ visible, onDismiss }) => {
         </Dialog.Actions>
         {audioUri && (
           <Dialog.Content>
-            <Button onPress={playAudio}>Play Audio</Button>
+            <Button mode="outlined" onPress={playAudio}>
+              Play Audio
+            </Button>
           </Dialog.Content>
         )}
       </Dialog>
@@ -81,22 +85,35 @@ const TtsModal = ({ visible, onDismiss }) => {
 };
 
 const styles = StyleSheet.create({
-  inputWrapper: {
-    width: width - 40,
-    marginBottom: 10,
+  dialog: {
+    borderRadius: 10,
+    width: width * 0.9,
+    alignSelf: "center",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  inputContainer: {
+    marginTop: 10,
   },
   textInput: {
-    width: "100%",
-    marginBottom: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
     padding: 10,
-    backgroundColor: "white",
-    borderRadius: 4,
-    elevation: 2,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    marginBottom: 10,
   },
   errorText: {
     color: "red",
-    marginTop: 10,
-    fontSize: 12,
+    fontSize: 14,
+    marginTop: 5,
+  },
+  actions: {
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
   },
 });
 
