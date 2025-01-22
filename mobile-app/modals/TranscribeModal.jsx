@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { Dialog, Portal, Button, Text } from "react-native-paper";
 import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
+import Constants from "expo-constants";
 import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
+
+const API_URL = Constants.expoConfig.extra.API_URL;
 
 const { width, height } = Dimensions.get("window");
 
@@ -25,7 +28,7 @@ const TranscribeModal = ({ visible, onDismiss }) => {
           type: file.mimeType,
         });
 
-        const response = await axios.post("http://192.168.1.101:8000/fwhisper/transcribe", formData, {
+        const response = await axios.post(`${API_URL}/fwhisper/transcribe`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -110,7 +113,8 @@ const TranscribeModal = ({ visible, onDismiss }) => {
 
 const styles = StyleSheet.create({
   dialogContainer: {
-    maxWidth: width * 0.9,
+    width: width * 0.9,
+    height: height * 0.7,
     alignSelf: "center",
     borderRadius: 10,
   },
