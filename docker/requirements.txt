@@ -3,3 +3,6 @@ uvicorn
 faster-whisper
 aiofiles
 python-multipart
+googletrans
+gtts
+langid

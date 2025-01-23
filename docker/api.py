@@ -192,4 +192,4 @@ if __name__ == "__main__":
     import uvicorn
 
     logging.info("Starting FastAPI server...")
-    uvicorn.run(app, host="192.168.254.28", port=8000)
+    uvicorn.run(app, host="192.168.1.39", port=8000)

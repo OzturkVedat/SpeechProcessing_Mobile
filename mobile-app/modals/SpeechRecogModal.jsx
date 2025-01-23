@@ -153,6 +153,7 @@ const SpeechRecogModal = ({ visible, onDismiss }) => {
 const styles = StyleSheet.create({
   dialog: {
     width: width * 0.9,
+    height: height * 0.7,
     alignSelf: "center",
   },
   errorText: {
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   resultContainer: {
-    maxHeight: 150,
+    maxHeight: width * 0.6,
     marginTop: 10,
   },
   resultHeader: {
