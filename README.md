@@ -62,6 +62,7 @@ Once both the backend and mobile app are running, you can interact with the mobi
 - Transcribe audio files with timestamps
 - Record speech for transcription and translation
 - Convert text into speech
+  
 Response time can vary depending on the system, particulary GPU.
 
 ![AppScreens](./mobile-app/assets/modals.jpg)
