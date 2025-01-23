@@ -1,60 +1,67 @@
-# FastAPI Speech Recognition Microservice
+# Speech Processing Mobile App
 
-## Overview
-
-This project is designed to provide efficient audio transcription through a simple REST API, using Faster-Whisper model and FastAPI.
+This project is designed to provide efficient audio transcription, text-to-speech (TTS), speech recognition and translation through a Dockerized API, using gTTS, Faster-Whisper model and FastAPI. It also includes a mobile app built with React Native as an example implementation.
 
 ## Features
 
-- **REST API**: Easy to interact with via http requests.
-- **Accurate Recognitions**: Used small version of Faster-Whisper to balance speed/accuracy.
-- **Dockerized**: Dockerfile for easy deployment.
+- Transcription, Speech Recognition and Translation using Faster-Whisper
+- Text-to-Speech with gTTS and langid
+- Dockerized API
+- React Native Expo App
   
 ## Requirements
 
 - Docker Engine
 - CUDA supported hardware with GPU (CPU is ignored in this project, as it can yield slow responses)
+- npm and expo (for mobile app)
 
-## Installation
+## Setup
 
-1. Clone the repository:
+### Backend (Docker)
+To run the FastAPI in a Docker container:
+1. Navigate to the docker/ folder and build the Docker image (can take some time):
 
    ```bash
-   git clone https://github.com/OzturkVedat/SpeechRecognition_Microservice.git
-   cd SpeechRecognition_Microservice
+   cd docker
+   docker build -t speech-proccesing-api .
    ```
 
-2. Build the Docker image:
+2. Run the Docker container:
 
     ```bash
-    docker build -t speech-recog-img .
+    docker run --gpus all -p 8000:8000 speech-proccesing-api
     ```
-
-3. Run the Docker container:
-
-    ```bash
-    docker run --gpus all -p 8000:8000 speech-recog-img
-    ```
-    Wait for microservice to initialize, it can take a few minutes. FYI, you can check the container's logs within Docker Desktop to supervise the process.
+Wait for microservice to initialize, it can take a few minutes. FYI, you can check the container's logs within Docker Desktop to supervise the process.
      
-4. Access the API:
+3. Access the API:
    Open your browser and go to http://localhost:8000/ to view the API Documentation(SwaggerUI).
+
+### Mobile App (expo)   
+
+1. Navigate to the mobile-app/ folder and install the dependencies:
+   ```bash
+   cd mobile-app
+   npx expo install
+   ```
+
+2. Connect the Dockerized API:
+   Navigate to the app.json file and modify the API_URL to your network's IP. (E.g. container can take the IP of the connected Wifi by default, which mobile device should be connected too, in development.)
    
+3. Run the app:
+  ```bash
+   npx expo start
+   ```
+You can open the app with expo app on Android, or camera app on iOS. Home screen is given below:
+![HomeScreen](./mobile-app/assets/home.jpg)
+
 ## Usage
+Once both the backend and mobile app are running, you can interact with the mobile app to:
+- Transcribe audio files with timestamps
+- Record speech for transcription and translation
+- Convert text into speech
+Response time can vary depending on the system, particulary GPU.
 
-To use the API for audio transcription, send a post request via /transcibe endpoint with the audio file. The API will return the transcription result in JSON format. Response time can vary depending on the system, particulary GPU.
-
-### Project Structure
-
-```bash
-SpeechRecognition_Microservice/
-├── .gitignore
-├── Dockerfile             # For dockerizing the app to be a microservice
-├── README.md
-├── main.py                # Contains main app code for API and model
-└── requirements.txt       # Used to add dependencies inside docker image
-
-```
+![AppScreens](./mobile-app/assets/modals.jpg)
 
 ## Contributing
 Feel free to open issues or submit pull requests for improvements.
