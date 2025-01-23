@@ -52,7 +52,8 @@ Wait for microservice to initialize, it can take a few minutes. FYI, you can che
    npx expo start
    ```
 You can open the app with expo app on Android, or camera app on iOS. Home screen is given below:
-![HomeScreen](./mobile-app/assets/home.jpg)
+
+<img src="./mobile-app/assets/home.jpg" width="250" />
 
 ## Usage
 Once both the backend and mobile app are running, you can interact with the mobile app to:
