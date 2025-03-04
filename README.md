@@ -12,7 +12,7 @@ This project is designed to provide efficient audio transcription, text-to-speec
 ## Requirements
 
 - Docker Engine
-- CUDA supported hardware with GPU (CPU is ignored in this project, as it can yield slow responses)
+- CUDA supported hardware
 - npm and expo (for mobile app)
 
 ## Setup
